@@ -1,3 +1,7 @@
+## 0.0.3
+
+* Android backward compatibility
+
 ## 0.0.2
 
 * Migrate from the deprecated original Android Support Library to AndroidX
