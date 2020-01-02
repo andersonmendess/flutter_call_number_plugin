@@ -12,6 +12,7 @@ import android.content.pm.PackageManager;
 import android.content.Intent;
 import android.net.Uri;
 import android.Manifest;
+import android.os.Build;
 
 /**
  * CallNumberPlugin
@@ -33,7 +34,7 @@ public class CallNumberPlugin implements MethodCallHandler {
 
   @Override
   public void onMethodCall(MethodCall call, Result result) {
-    String num = call.argument("number");
+    String number = call.argument("number");
 
     Context context;
     if (mRegistrar.activity() != null) {
@@ -43,26 +44,28 @@ public class CallNumberPlugin implements MethodCallHandler {
     }
 
     if (call.method.equals("callNumber")) {
-     
-      boolean hasPermission = context.checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
-      
-      if(!hasPermission){
-        requestCallPermission();
-        return;
+
+      if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.M){
+        handlePermission(context);
       }
 
-      String number = "tel:" + num.trim();
-      Intent callIntent = new Intent(Intent.ACTION_CALL, Uri.parse(number)); 
+      Intent callIntent = new Intent(Intent.ACTION_CALL); 
+      callIntent.setData(Uri.parse("tel:" + number));
       context.startActivity(callIntent);
-      result.success(num);
 
+      result.success(true);
     } else {
       result.notImplemented();
     }
   }
 
-  private void requestCallPermission() {
-    mRegistrar.activity().requestPermissions(new String[] {Manifest.permission.CALL_PHONE}, REQUEST_CALL_PHONE_PERMISSION);
+  private void handlePermission(Context ctx) {
+    boolean hasPermission = ctx.checkSelfPermission(Manifest.permission.CALL_PHONE) == PackageManager.PERMISSION_GRANTED;
+
+    if(!hasPermission){
+      mRegistrar.activity().requestPermissions(new String[] {Manifest.permission.CALL_PHONE}, REQUEST_CALL_PHONE_PERMISSION);
+    }
+
   }
 
  
